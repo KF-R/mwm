@@ -6,7 +6,6 @@ It's a bit faster, a bit better looking and I had a lot more fun making the
 sound effects this time. 
 -------------------------------------------------------------------------------
 
-
 You're an astronaut out spelunking on an alien world and you've been charged
 with finding the bottom of a seemingly endless crater.
 
@@ -22,13 +21,10 @@ flames.
 If you sit too still for too long, the timer will get you!
 
 -------------------------------------------------------------------------------
-
 All emojis designed by OpenMoji – the open-source emoji and icon project. 
-License: CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/)
+CC BY-SA 4.0  https://creativecommons.org/licenses/by-sa/4.0/)
 
-IBM 3270 styled font from:
-https://github.com/hbin/top-programming-fonts/
+IBM 3270 styled font from: https://github.com/hbin/top-programming-fonts/
 
 All other assets, code and materials (c) Kerry Fraser-Robinson 1985, 2023
 -------------------------------------------------------------------------------
-
