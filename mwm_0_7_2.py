@@ -54,9 +54,7 @@ status, notice, running = ' Press <SPACE> to start ', DIFFICULTY_NOTICE, False
 def set_loot_for_difficulty(lst, new_difficulty: int = 2):
     global loot_table
     loot_table = INITIAL_LOOT_TABLE + [lst[-1]] * new_difficulty * DIFFICULTY_MULTIPLIER
-    # print(f"Dif: {new_difficulty} ({(DIFF_STRING[new_difficulty])})")
-    # print(loot_table)
-
+    
 ## Load all PNG files from the given directory
 def load_sprites(img_dir=IMG_DIR):
     sprites = {}
@@ -318,7 +316,6 @@ while True:
 
     ## Is it fall time?
     if cycles // fall_cycles_per_tick == cycles / fall_cycles_per_tick:
-        # fall_cycles_per_tick = max(3, (fall_cycles_per_tick + (fall_cycles_per_tick - ( score // 100 ))) // 2 ) 
         ## The player will fall if there's no ground below them
         if direction == 1:
             if game_board[player_y + 1][player_x] == 0:
@@ -405,11 +402,3 @@ while True:
 
 pygame.mixer.quit()
 pygame.quit()
-
-
-## TODO: Add difficulty to high score table
-## TODO: QA
-## TODO: BALANCE
-## TODO: QA2
-## TODO: BALANCE
-## TODO: Documentation, README.md, git
