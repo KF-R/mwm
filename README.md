@@ -1,9 +1,10 @@
 # Mining With Mines '23
 
--------------------------------------------------------------------------------
+
 This is a reboot of a game I wrote for the Sinclair ZX Spectrum in early 1985. 
 It's a bit faster, a bit better looking and I had a lot more fun making the
 sound effects this time. 
+
 -------------------------------------------------------------------------------
 
 You're an astronaut out spelunking on an alien world and you've been charged
