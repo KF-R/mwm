@@ -27,11 +27,12 @@ flames.  If you sit too still for too long, the timer will get you.
 
 -------------------------------------------------------------------------------
 
-All emojis designed by OpenMoji – the open-source emoji and icon project. 
-CC BY-SA 4.0  https://creativecommons.org/licenses/by-sa/4.0/)
+  All emojis designed by OpenMoji – the open-source emoji and icon project. 
+  CC BY-SA 4.0            (https://creativecommons.org/licenses/by-sa/4.0/)
 
-IBM 3270 styled font from: https://github.com/hbin/top-programming-fonts/
+  IBM 3270 styled font from: https://github.com/hbin/top-programming-fonts/
 
-All other assets, code and materials (c) Kerry Fraser-Robinson 1985, 2023
+  All other assets, code and materials (c) Kerry Fraser-Robinson 1985, 2023
 
 -------------------------------------------------------------------------------
+
