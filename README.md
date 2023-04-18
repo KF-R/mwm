@@ -18,9 +18,7 @@ Keys are:
 - L Right
 
 You'll find extra shields, bombs and jet fuel along the way but beware the
-flames.
-
-If you sit too still for too long, the timer will get you!
+flames.  If you sit too still for too long, the timer will get you.
 
 <p>
   <img src="https://user-images.githubusercontent.com/6677966/232723049-86f03ef4-1521-4bf1-98d0-f5546f3f225d.png" alt="s1c" width="400" height="325" hspace="10">
