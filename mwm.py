@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ## (c) 1985, 2023  Kerry Fraser-Robinson
 ## A pygame reboot of 'Mining With Mines' (1985) for the ZX Spectrum by the same author.
-VERSION = 'v 0.8.2'
+VERSION = 'v 0.8.3'
 
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -52,22 +52,21 @@ def set_loot_for_difficulty(lst, new_difficulty: int = 2):
     global loot_table
     loot_table = INITIAL_LOOT_TABLE + [lst[-1]] * new_difficulty * DIFFICULTY_MULTIPLIER
 
+def load_wavs(img_dir=IMG_DIR):
+    sounds = {}
+    wav_files = [file for file in os.listdir(img_dir) if file.endswith('.wav')]
+    sounds = {os.path.splitext(name)[0]: pygame.mixer.Sound(os.path.join(IMG_DIR, name)) for name in wav_files}
+    sounds['whoosh'].set_volume(0.5)
+    return sounds
+
 def load_sprites(img_dir=IMG_DIR):
-    sprites = {}
-    for file in os.listdir(img_dir):
-        if file.endswith('.png'):
-            name = os.path.splitext(file)[0]
-            path = os.path.join(img_dir, file)
-            sprites[name] = pygame.image.load(path).convert_alpha()
-    return sprites
+    return {os.path.splitext(file)[0]: pygame.image.load(os.path.join(img_dir, file)).convert_alpha()
+            for file in os.listdir(img_dir) if file.endswith('.png')}
 
 def sprite_at(canvas, x: int = 1, y: int = 1, name: str = 'gemstone', scale: float = 1.0):
-    if name in sprites:
-        image = sprites[name]
-        if scale != 1.0:
-            width = int(image.get_width() * scale)
-            height = int(image.get_height() * scale)
-            image = pygame.transform.scale(image, (width, height))
+    if (image := sprites.get(name)) and scale != 1.0:
+        image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
+    if image:
         canvas.blit(image, (x, y))
 
 def print_at(canvas, text_x: int, text_y: int, text_string: str, font_size: int = 16, color = (255,255,255), bgcolor = DARK_GREY):
@@ -98,13 +97,13 @@ def scroll_up():
 def boom(y, x):
     """ Blow up a bomb """
     global game_board, player_y, player_x, shields, bombs, status, notice, running
-    boom_sound.play()
-    for i, j in ((i, j) for i in range(y-1, y+2) for j in range(x-1, x+2) if 0 <= i < len(game_board) and 0 <= j < len(game_board[0])):
-        game_board[i][j] = 0
+    if running == False: return # traps multiple bomb events, preventing multiple deaths and high-score entries
+    sounds['boom'].play()
+    game_board = [[0 if (y-1 <= i < y+2 and x-1 <= j < x+2) else game_board[i][j] for j in range(len(game_board[0]))] for i in range(len(game_board))]
     if abs(player_x - x) + abs(player_y - y) < 2:
         if shields > 0: 
             shields -= 1
-            spark_sound.play()
+            sounds['spark'].play()
         else: 
             running, bombs, status, notice = False, 0, " Press <SPACE> to retry ", DIFFICULTY_NOTICE
             high_score_table(score)
@@ -156,50 +155,33 @@ def display_high_scores(screen, high_scores, x, y, col_width, row_height, color=
 def ordinal(n): return format(abs(n), ",") + ("th" if 4 <= abs(n) % 100 <= 20 else {1: "st", 2: "nd", 3: "rd"}.get(abs(n) % 10, "th"))
 
 def high_score_table(score):
-    # Get the system username and the current date
     DEFAULT_HEADLINE = 'name,score,difficulty,date'
     username = os.environ.get('USERNAME') or os.environ.get('USER')
     now = datetime.now()
     date_string = f"{ordinal(now.day)} {now.strftime('%b')} {now.strftime('%-I:%M%p').lower()}"
-    # Check if the file exists
+
     if os.path.exists(HIGHSCORE_FILENAME):
         with open(HIGHSCORE_FILENAME, "r") as file:
             content = file.readlines()
-            if(score==0):
+            if (score == 0):
                 return "".join(content).strip() # We're just reading
     else:
-        # If it doesn't exist, create it and add the first line
         with open(HIGHSCORE_FILENAME, "w") as file:
             file.write(DEFAULT_HEADLINE + NL)
             content = [DEFAULT_HEADLINE + NL]
-    
-    # Parse comma separated lines into a list of tuples
+
     scores = [tuple(line.strip().split(',')) for line in content[1:]]
-    
-    # Insert the new score into the right location
     new_score = (username, str(score), DIFF_STRING[DIFFICULTY-1], date_string)
-    inserted = False
-    for i, existing_score in enumerate(scores):
-        if score > int(existing_score[1]):
-            scores.insert(i, new_score)
-            inserted = True
-            break
-    
+    inserted = any(score > int(existing_score[1]) and scores.insert(i, new_score) is None for i, existing_score in enumerate(scores))
     if not inserted:
         scores.append(new_score)
     
-    if(len(scores) >= HIGH_SCORE_LIMIT):
-        scores = scores[:HIGH_SCORE_LIMIT]
-    
-    # Update the file
+    scores = scores[:min(len(scores), HIGH_SCORE_LIMIT)]
     with open(HIGHSCORE_FILENAME, "w") as file:
         file.write(DEFAULT_HEADLINE + NL)
-        for score in scores:
-            file.write(','.join(score) + NL)
-    
-    # Return score table as string
-    result = DEFAULT_HEADLINE + NL + NL.join([','.join(score) for score in scores])
-    return result
+        file.writelines([','.join(score) + NL for score in scores])
+
+    return DEFAULT_HEADLINE + NL + NL.join([','.join(score) for score in scores])
 
 def draw_death_clock(screen, x, y, radius: int = 32, value: int = 0, value_range: int = 60):
     center = (x, y)
@@ -228,12 +210,7 @@ def draw_death_clock(screen, x, y, radius: int = 32, value: int = 0, value_range
 ## Prepare audio and sprites
 intro_tune = pygame.mixer.Sound(os.path.join(IMG_DIR,'intro.wav'))
 outro_tune = pygame.mixer.Sound(os.path.join(IMG_DIR,'outro.wav'))
-boom_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,'boom.wav'))
-bling_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,'bling.wav'))
-spark_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,'spark.wav'))
-crunch_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,'crunch.wav'))
-whoosh_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,f'whoosh.wav'))
-whoosh_sound.set_volume(0.6)
+sounds = load_wavs()
 sprites = load_sprites()
 
 ## Intro
@@ -284,7 +261,7 @@ while True:
             elif event.key == pygame.K_i:
                 if jet_fuel > 0:
                     direction = direction * - 1
-                    crunch_sound.play()
+                    sounds['crunch'].play()
 
     ## Draw the game board
     screen.fill(BLACK)
@@ -323,10 +300,10 @@ while True:
                     bonus_roll = random.randint(0, 99)
                     if bonus_roll < 20: 
                         score +=1
-                        whoosh_sound.play()
+                        sounds['whoosh'].play()
                     elif bonus_roll < 40 and DIFFICULTY > 2:
                         score +=1
-                        whoosh_sound.play()
+                        sounds['whoosh'].play()
                 death_timer = (death_timer // 2)
         else:
             ## Player is flying
@@ -338,7 +315,7 @@ while True:
             else:
                 ## The player hit their head, flew too high or ran out of fuel so now they will fall
                 direction = 1
-                crunch_sound.play()
+                sounds['crunch'].play()
 
         ## Bombs and loot in mid-air will fall:
         bomb_list = [(bomb_y + 1, bomb_x, timer) if game_board[bomb_y + 1][bomb_x] == 0 else (bomb_y, bomb_x, timer) for bomb_y, bomb_x, timer in bomb_list]
@@ -364,8 +341,8 @@ while True:
             elif loot_type == 1: bombs += STARTING_BOMBS // 2
             else: score += GEM_SCORE * DIFFICULTY
             if loot_type < 4:
-                bling_sound.play()
-            else: spark_sound.play() 
+                sounds['bling'].play()
+            else: sounds['spark'].play() 
 
     ## Draw bombs and burn fuses
     for i in reversed(range(len(bomb_list))):
