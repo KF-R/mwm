@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ## (c) 1985, 2023  Kerry Fraser-Robinson
 ## A pygame reboot of 'Mining With Mines' (1985) for the ZX Spectrum by the same author.
-VERSION = 'v 0.8.0'
+VERSION = 'v 0.8.2'
 
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
@@ -232,19 +232,21 @@ boom_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,'boom.wav'))
 bling_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,'bling.wav'))
 spark_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,'spark.wav'))
 crunch_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,'crunch.wav'))
+whoosh_sound = pygame.mixer.Sound(os.path.join(IMG_DIR,f'whoosh.wav'))
+whoosh_sound.set_volume(0.6)
 sprites = load_sprites()
 
 ## Intro
 print_at(screen,280,20,' M W M ', 64, YELLOW, BLACK)
-print_at(screen,340,80, ' ' + VERSION + ' ', 24, YELLOW, BLACK)
-print_at(screen,24,350,' <press any key to continue> ', 48, CYAN, BLACK)
-print_at(screen,312,575,' \u00A9 2023  KFR ', 24, WHITE, BLACK)
+print_at(screen,340,90, ' ' + VERSION + ' ', 24, YELLOW, BLACK)
+print_at(screen,24,360,' <press any key to continue> ', 48, CYAN, BLACK)
+print_at(screen,280,575,' \u00A9 1985, 2023  KFR ', 24, WHITE, BLACK)
 display_flag_sprites(screen,30,460,1,0.2)
-if notice != '': print_at(screen, 230, 420, notice, 24, WHITE, BLACK)
+if notice != '': print_at(screen, 230, 430, notice, 24, WHITE, BLACK)
 display_high_scores(screen, high_score_table(0), 40, 140, 150, 24)
 pygame.display.update()
 intro_tune.play()
-pygame.time.delay(1000)
+pygame.time.delay(900)
 press_a_key()
 
 ## Main game loop
@@ -316,6 +318,16 @@ while True:
                 else: player_y += 1
                 score += 1
                 death_timer = (death_timer // 2)
+                ## Difficulty score boost
+                if (DIFFICULTY > 1):
+                    bonus_roll = random.randint(0, 99)
+                    if bonus_roll < 20: 
+                        score +=1
+                        whoosh_sound.play()
+                    elif bonus_roll < 40 and DIFFICULTY > 2:
+                        score +=1
+                        whoosh_sound.play()
+                death_timer = (death_timer // 2)
         else:
             ## Player is flying
             if game_board[player_y - 1][player_x] == 0 and player_y > 0 and jet_fuel > 0:
@@ -350,7 +362,7 @@ while True:
             elif loot_type == 3: shields += STARTING_SHIELDS // 2
             elif loot_type == 2: jet_fuel += STARTING_JET_FUEL // 2
             elif loot_type == 1: bombs += STARTING_BOMBS // 2
-            else: score += GEM_SCORE
+            else: score += GEM_SCORE * DIFFICULTY
             if loot_type < 4:
                 bling_sound.play()
             else: spark_sound.play() 
